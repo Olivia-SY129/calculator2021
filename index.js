@@ -5,9 +5,13 @@ const viewer = document.querySelector(".viewer");
 const result = document.querySelector(".result");
 
 let elements = ["0"];
+let waitList = [];
 let lastEl = elements[elements.length - 1];
 
 function changeOps(el) {
+  if (el === "+" || el === "-" || el === "*" || el === "/" || el === "=") {
+    return el;
+  }
   switch (el) {
     case "plus":
       return "+";
@@ -20,7 +24,7 @@ function changeOps(el) {
     case "equals":
       return "=";
     default:
-      return "Error";
+      return "Error: wrong ops";
   }
 }
 
@@ -30,6 +34,9 @@ function insertOps(ops) {
     elements[elements.length - 1] = ops;
   } else if (elements.length === 3) {
     elements.push("=");
+    if (ops !== "=") {
+      waitList.push(ops);
+    }
   } else {
     elements.push(ops);
   }
@@ -98,7 +105,6 @@ function showResult() {
     const second = +elements[2];
     const ops = elements[1];
 
-    console.log(first, second, ops, calculate(first, second, ops));
     const ans = Math.round(calculate(first, second, ops) * 1e12) / 1e12;
 
     result.innerText = ans;
@@ -123,17 +129,23 @@ function handleElements(e) {
     if (funcEl === "clear") {
       elements = ["0"];
     } else if (funcEl === "delete") {
-      if (elements[0] !== "0") {
+      if (elements.length > 1) {
         elements.pop();
+      } else {
+        elements = ["0"];
       }
     }
   }
 
   lastEl = elements[elements.length - 1];
-  console.log(elements);
-  console.log(lastEl);
   showElements();
   showResult();
+
+  const poppedWait = waitList.pop();
+  if (poppedWait) {
+    insertOps(poppedWait);
+    showElements();
+  }
 }
 
 for (const btn of btns) {
